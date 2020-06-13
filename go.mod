@@ -1,4 +1,4 @@
-module github.com/niecke/ech0
+module github.com/Niecke/ech0
 
 go 1.14
 
