@@ -1,4 +1,4 @@
-module github.com/dvelitchkov/ech0
+module github.com/niecke/ech0
 
 go 1.14
 
