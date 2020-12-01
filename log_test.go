@@ -60,6 +60,7 @@ func TestLogLevels(t *testing.T) {
 	zb := &bytes.Buffer{}
 	z.SetOutput(zb)
 	z.SetLevel(gommon.DEBUG)
+	z.SetCallsite(true)
 
 	gt := reflect.TypeOf(gom)
 	zt := reflect.TypeOf(z)
@@ -74,9 +75,9 @@ func TestLogLevels(t *testing.T) {
 		t.Run(testcase.name, func(t *testing.T) {
 
 			for i, j := range [][]reflect.Value{
-				[]reflect.Value{reflect.ValueOf("hello")},
-				[]reflect.Value{reflect.ValueOf("%s"), reflect.ValueOf("bbq")},
-				[]reflect.Value{reflect.ValueOf(map[string]interface{}{"foo": "bar", "baz": []string{"a", "b"}, "z": map[string]interface{}{"1": "2"}})},
+				{reflect.ValueOf("hello")},
+				{reflect.ValueOf("%s"), reflect.ValueOf("bbq")},
+				{reflect.ValueOf(map[string]interface{}{"foo": "bar", "baz": []string{"a", "b"}, "z": map[string]interface{}{"1": "2"}})},
 			} {
 
 				var zbb, gombb []byte
@@ -182,6 +183,7 @@ func TestMisc(t *testing.T) {
 func BenchmarkZeroFormat(b *testing.B) {
 	benchFormat(New(""), b)
 }
+
 func BenchmarkZeroJSON(b *testing.B) {
 	benchJSON(New(""), b)
 }
@@ -189,10 +191,12 @@ func BenchmarkZeroJSON(b *testing.B) {
 func BenchmarkZero(b *testing.B) {
 	bench(New(""), b)
 }
+
 func BenchmarkGommonFormat(b *testing.B) {
 	benchFormat(gommon.New(""), b)
 
 }
+
 func BenchmarkGommonJSON(b *testing.B) {
 	benchJSON(gommon.New(""), b)
 }

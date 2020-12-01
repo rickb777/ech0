@@ -33,25 +33,35 @@ var (
 
 // Log wraps a zerolog.Logger to provide an `echo.Logger` implementation
 type Log struct {
-	prefix string
-	zl     zerolog.Logger
-	out    io.Writer
-	lvl    zerolog.Level
+	prefix   string
+	zl       zerolog.Logger
+	out      io.Writer
+	lvl      zerolog.Level
+	callsite bool
 }
 
-// New returns a new Log instance with the given prefix
-func New(pfx string) *Log {
-	z := zerolog.New(os.Stderr).With().Str("prefix", pfx).Timestamp().Logger().Level(zerolog.InfoLevel)
-
+// New returns a new Log instance with the given prefix.
+// Pass in your own zerolog logger if required.
+func New(prefix string, z ...zerolog.Logger) *Log {
+	var zl zerolog.Logger
+	if len(z) == 0 {
+		zl = zerolog.New(os.Stdout).With().Str("prefix", prefix).Timestamp().Logger().Level(zerolog.InfoLevel)
+	} else {
+		zl = z[0]
+	}
 	return &Log{
-		prefix: "",
-		out:    os.Stderr,
-		zl:     z,
+		prefix: prefix,
+		out:    os.Stdout,
+		zl:     zl,
 		lvl:    zerolog.InfoLevel,
 	}
 }
 
 func (l Log) logWithFields() zerolog.Logger {
+	if !l.callsite {
+		return l.zl
+	}
+
 	ll := l.zl
 	_, f, no, ok := runtime.Caller(2)
 	if ok {
@@ -256,12 +266,23 @@ func (l Log) Prefix() string {
 	return l.prefix
 }
 
-// SetPrefix satisfies the echo.Logger interface
+// SetPrefix satisfies the echo.Logger interface. Currently disabled.
 func (l *Log) SetPrefix(p string) {
 	// Have to create a brand-new logger, since zero-log doesn't dedup fields. "prefix" would appear twice in the log output.
-	z := zerolog.New(l.Output()).With().Str("prefix", p).Timestamp().Logger().Level(l.lvl)
-	(*l).zl = z
-	(*l).prefix = p
+	//z := zerolog.New(l.Output()).With().Str("prefix", p).Timestamp().Logger().Level(l.lvl)
+	//(*l).zl = z
+	//(*l).prefix = p
+}
+
+// SetHeader satisfies the echo.Logger interface. It does nothing.
+func (l *Log) SetHeader(h string) {
+	// no-op
+}
+
+// SetCallsite controls whether file and line numbers are emitted with every
+// log output. Set this true to enable these items.
+func (l *Log) SetCallsite(enabled bool) {
+	l.callsite = enabled
 }
 
 var _ echo.Logger = (*Log)(nil)
