@@ -3,6 +3,7 @@ package ech0
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/rs/zerolog"
 	"io/ioutil"
 	"math"
 	"reflect"
@@ -56,9 +57,8 @@ func TestLogLevels(t *testing.T) {
 	gom.SetOutput(gomb)
 	gom.SetLevel(gommon.DEBUG)
 
-	z := New("")
 	zb := &bytes.Buffer{}
-	z.SetOutput(zb)
+	z := New(zb)
 	z.SetLevel(gommon.DEBUG)
 	z.SetCallsite(true)
 
@@ -169,27 +169,51 @@ func equal(t *testing.T, a msgZero, b msgGommon) bool {
 }
 
 func TestMisc(t *testing.T) {
-	l := New("")
+	zerolog.TimestampFunc = func() time.Time {
+		return time.Date(2000, 5, 25, 13, 14, 15, 0, time.UTC)
+	}
+
+	l := New(ioutil.Discard)
+	zb := &bytes.Buffer{}
+	l.SetOutput(zb)
 	l.SetLevel(gommon.INFO)
-	l.SetPrefix("hello")
 	l.Info("hello")
+	l.SetPrefix("foo")
 	l.SetLevel(gommon.WARN)
 	l.Warn("hello", "again")
+
+	s := zb.String()
+	lines := strings.Split(s, "\n")
+	if len(lines) < 3 {
+		t.Fatalf("Expected 2 lines but only got %d", len(lines))
+	}
+	if len(lines) > 3 {
+		t.Errorf("Expected 2 lines but got %d adding %v", len(lines), lines[3:])
+	}
+	if lines[0] != `{"level":"info","time":"2000-05-25T13:14:15Z","message":"hello"}` {
+		t.Errorf(`Got %q`, lines[0])
+	}
+	if lines[1] != `{"level":"warn","prefix":"foo","time":"2000-05-25T13:14:15Z","message":"helloagain"}` {
+		t.Errorf(`Got %q`, lines[1])
+	}
+	if lines[2] != "" {
+		t.Errorf(`Got %q`, lines[2])
+	}
 
 	g := gommon.New("")
 	g.Warn("hello", "again")
 }
 
 func BenchmarkZeroFormat(b *testing.B) {
-	benchFormat(New(""), b)
+	benchFormat(New(ioutil.Discard), b)
 }
 
 func BenchmarkZeroJSON(b *testing.B) {
-	benchJSON(New(""), b)
+	benchJSON(New(ioutil.Discard), b)
 }
 
 func BenchmarkZero(b *testing.B) {
-	bench(New(""), b)
+	bench(New(ioutil.Discard), b)
 }
 
 func BenchmarkGommonFormat(b *testing.B) {

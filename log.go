@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"runtime"
 
@@ -40,20 +39,21 @@ type Log struct {
 	callsite bool
 }
 
-// New returns a new Log instance with the given prefix.
+// New returns a new Log instance with the given output.
 // Pass in your own zerolog logger if required.
-func New(prefix string, z ...zerolog.Logger) *Log {
+// No prefix is set; use SetPrefix if required.
+func New(out io.Writer, z ...zerolog.Logger) *Log {
 	var zl zerolog.Logger
 	if len(z) == 0 {
-		zl = zerolog.New(os.Stdout).With().Str("prefix", prefix).Timestamp().Logger().Level(zerolog.InfoLevel)
+		zl = zerolog.New(out).With().Timestamp().Logger()
 	} else {
 		zl = z[0]
 	}
 	return &Log{
-		prefix: prefix,
-		out:    os.Stdout,
+		prefix: "",
+		out:    out,
 		zl:     zl,
-		lvl:    zerolog.InfoLevel,
+		lvl:    zerolog.GlobalLevel(),
 	}
 }
 
@@ -245,8 +245,8 @@ func (l Log) Output() io.Writer {
 
 // SetOutput satisfies the echo.Logger interface
 func (l *Log) SetOutput(w io.Writer) {
-	(*l).zl = (*l).zl.Output(w)
-	(*l).out = w
+	l.zl = l.zl.Output(w)
+	l.out = w
 }
 
 // Level satisfies the echo.Logger interface
@@ -257,8 +257,8 @@ func (l Log) Level() log.Lvl {
 // SetLevel satisfies the echo.Logger interface
 func (l *Log) SetLevel(v log.Lvl) {
 	zlvl := gomLvlToZlvl[v]
-	(*l).zl = (*l).zl.Level(zlvl)
-	(*l).lvl = zlvl
+	l.zl = l.zl.Level(zlvl)
+	l.lvl = zlvl
 }
 
 // Prefix satisfies the echo.Logger interface
@@ -266,15 +266,22 @@ func (l Log) Prefix() string {
 	return l.prefix
 }
 
-// SetPrefix satisfies the echo.Logger interface. Currently disabled.
-func (l *Log) SetPrefix(p string) {
+// SetPrefix satisfies the echo.Logger interface.
+func (l *Log) SetPrefix(prefix string) {
 	// Have to create a brand-new logger, since zero-log doesn't dedup fields. "prefix" would appear twice in the log output.
-	//z := zerolog.New(l.Output()).With().Str("prefix", p).Timestamp().Logger().Level(l.lvl)
-	//(*l).zl = z
-	//(*l).prefix = p
+	var z zerolog.Logger
+	if prefix != "" {
+		z = zerolog.New(l.Output()).With().Str("prefix", prefix).Timestamp().Logger().Level(l.lvl)
+	} else {
+		z = zerolog.New(l.Output()).With().Timestamp().Logger().Level(l.lvl)
+	}
+	l.zl = z
+	l.prefix = prefix
 }
 
 // SetHeader satisfies the echo.Logger interface. It does nothing.
+// Within `echo`, this is used to set the template for formatting log messages,
+// but it is not required when using zerolog.
 func (l *Log) SetHeader(h string) {
 	// no-op
 }
