@@ -22,6 +22,10 @@ type TestLogger struct {
 
 var _ ech0.Zero = &TestLogger{}
 
+func New() *TestLogger {
+	return &TestLogger{}
+}
+
 func (l *TestLogger) Debug() ech0.ZeroEvent {
 	return &TestLogEvent{} // will be discarded after use
 }
