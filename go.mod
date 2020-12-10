@@ -12,4 +12,5 @@ require (
 	golang.org/x/net v0.0.0-20201207224615-747e23833adb // indirect
 	golang.org/x/sys v0.0.0-20201207223542-d4d67f95c62d // indirect
 	golang.org/x/text v0.3.4 // indirect
+	github.com/onsi/gomega v1.10.4
 )

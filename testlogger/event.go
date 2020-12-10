@@ -8,22 +8,22 @@ import (
 
 type TestLogEvent struct {
 	Method, Key string
-	Val interface{}
-	Next *TestLogEvent
-	done func(msg string)
+	Val         interface{}
+	Next        *TestLogEvent
+	done        func(msg string)
 }
 
 var _ ech0.ZeroEvent = &TestLogEvent{}
 
 func (ev *TestLogEvent) Send() {
-	ev.Next = &TestLogEvent{Method:"Send"}
+	ev.Next = &TestLogEvent{Method: "Send"}
 	if ev.done != nil {
 		ev.done("")
 	}
 }
 
 func (ev *TestLogEvent) Msg(s string) {
-	ev.Next = &TestLogEvent{Method:"Msg", Val: s}
+	ev.Next = &TestLogEvent{Method: "Msg", Val: s}
 	if ev.done != nil {
 		ev.done(s)
 	}
@@ -34,7 +34,7 @@ func (ev *TestLogEvent) Msgf(format string, v ...interface{}) {
 }
 
 func (ev *TestLogEvent) add(method, key string, val interface{}) ech0.ZeroEvent {
-	next := &TestLogEvent{Method:method, Key: key, Val: val, done: ev.done}
+	next := &TestLogEvent{Method: method, Key: key, Val: val, done: ev.done}
 	ev.Next = next
 	return next
 }
@@ -51,12 +51,24 @@ func (ev *TestLogEvent) Bytes(key string, val []byte) ech0.ZeroEvent {
 	return ev.add("Bytes", key, val)
 }
 
+func (ev *TestLogEvent) Dur(key string, val time.Duration) ech0.ZeroEvent {
+	return ev.add("Dur", key, val)
+}
+
 func (ev *TestLogEvent) Err(err error) ech0.ZeroEvent {
 	return ev.add("Err", "error", err)
 }
 
+func (ev *TestLogEvent) Hex(key string, val []byte) ech0.ZeroEvent {
+	return ev.add("Hex", key, val)
+}
+
 func (ev *TestLogEvent) Int(key string, val int) ech0.ZeroEvent {
 	return ev.add("Int", key, val)
+}
+
+func (ev *TestLogEvent) Ints(key string, val []int) ech0.ZeroEvent {
+	return ev.add("Ints", key, val)
 }
 
 func (ev *TestLogEvent) Int64(key string, val int64) ech0.ZeroEvent {
@@ -79,16 +91,16 @@ func (ev *TestLogEvent) Stringer(key string, val fmt.Stringer) ech0.ZeroEvent {
 	return ev.add("Stringer", key, val)
 }
 
-func (ev *TestLogEvent) Dur(key string, val time.Duration) ech0.ZeroEvent {
-	return ev.add("Dur", key, val)
-}
-
 func (ev *TestLogEvent) Time(key string, val time.Time) ech0.ZeroEvent {
 	return ev.add("Time", key, val)
 }
 
 func (ev *TestLogEvent) Uint(key string, val uint) ech0.ZeroEvent {
 	return ev.add("Uint", key, val)
+}
+
+func (ev *TestLogEvent) Uints(key string, val []uint) ech0.ZeroEvent {
+	return ev.add("Uints", key, val)
 }
 
 func (ev *TestLogEvent) Uint64(key string, val uint64) ech0.ZeroEvent {
@@ -111,4 +123,3 @@ func (ev *TestLogEvent) Value() interface{} {
 	}
 	return ev.Val
 }
-

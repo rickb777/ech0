@@ -17,7 +17,9 @@ type ZeroEvent interface {
 	Bytes(key string, val []byte) ZeroEvent
 	Dur(key string, val time.Duration) ZeroEvent
 	Err(err error) ZeroEvent
+	Hex(key string, val []byte) ZeroEvent
 	Int(key string, val int) ZeroEvent
+	Ints(key string, val []int) ZeroEvent
 	Int64(key string, val int64) ZeroEvent
 	Interface(key string, val interface{}) ZeroEvent
 	Str(key, val string) ZeroEvent
@@ -25,56 +27,59 @@ type ZeroEvent interface {
 	Stringer(key string, val fmt.Stringer) ZeroEvent
 	Time(key string, val time.Time) ZeroEvent
 	Uint(key string, val uint) ZeroEvent
+	Uints(key string, val []uint) ZeroEvent
 	Uint64(key string, val uint64) ZeroEvent
 }
 
 var _ ZeroEvent = &zeroEvent{}
 
-type zeroEvent struct {
-	ev *zerolog.Event
-}
+type zeroEvent zerolog.Event
 
 func (ze *zeroEvent) Send() {
-	ze.ev.Send()
+	(*zerolog.Event)(ze).Send()
 }
 
 func (ze *zeroEvent) Msg(s string) {
-	ze.ev.Msg(s)
+	(*zerolog.Event)(ze).Msg(s)
 }
 
 func (ze *zeroEvent) Msgf(format string, v ...interface{}) {
-	ze.ev.Msgf(format, v...)
+	(*zerolog.Event)(ze).Msgf(format, v...)
 }
 
 //-------------------------------------------------------------------------------------------------
 
-// AnErr adds the field key with serialized err to the *Event context.
+// AnErr adds the field key with serialized err to the ZeroEvent context.
 // If err is nil, no field is added.
 func (ze *zeroEvent) AnErr(key string, err error) ZeroEvent {
-	return &zeroEvent{ev: ze.ev.AnErr(key, err)}
+	ev := (*zerolog.Event)(ze).AnErr(key, err)
+	return (*zeroEvent)(ev)
 }
 
-// Bool adds the field key with val as a bool to the *Event context.
+// Bool adds the field key with val as a bool to the ZeroEvent context.
 func (ze *zeroEvent) Bool(key string, val bool) ZeroEvent {
-	return &zeroEvent{ev: ze.ev.Bool(key, val)}
+	ev := (*zerolog.Event)(ze).Bool(key, val)
+	return (*zeroEvent)(ev)
 }
 
-// Bytes adds the field key with val as a string to the *Event context.
+// Bytes adds the field key with val as a string to the ZeroEvent context.
 //
 // Runes outside of normal ASCII ranges will be hex-encoded in the resulting
 // JSON.
 func (ze *zeroEvent) Bytes(key string, val []byte) ZeroEvent {
-	return &zeroEvent{ev: ze.ev.Bytes(key, val)}
+	ev := (*zerolog.Event)(ze).Bytes(key, val)
+	return (*zeroEvent)(ev)
 }
 
 // Dur adds the field key with duration d stored as zerolog.DurationFieldUnit.
 // If zerolog.DurationFieldInteger is true, durations are rendered as integer
 // instead of float.
 func (ze *zeroEvent) Dur(key string, val time.Duration) ZeroEvent {
-	return &zeroEvent{ev: ze.ev.Dur(key, val)}
+	ev := (*zerolog.Event)(ze).Dur(key, val)
+	return (*zeroEvent)(ev)
 }
 
-// Err adds the field "error" with serialized err to the *Event context.
+// Err adds the field "error" with serialized err to the ZeroEvent context.
 // If err is nil, no field is added.
 //
 // To customize the key name, change zerolog.ErrorFieldName.
@@ -83,55 +88,78 @@ func (ze *zeroEvent) Dur(key string, val time.Duration) ZeroEvent {
 // the err is passed to ErrorStackMarshaler and the result is appended to the
 // zerolog.ErrorStackFieldName.
 func (ze *zeroEvent) Err(err error) ZeroEvent {
-	return &zeroEvent{ev: ze.ev.Err(err)}
+	ev := (*zerolog.Event)(ze).Err(err)
+	return (*zeroEvent)(ev)
 }
 
-// Int adds the field key with i as a int to the *Event context.
-func (ze *zeroEvent) Int(key string, val int) ZeroEvent {
-	return &zeroEvent{ev: ze.ev.Int(key, val)}
-}
-
-// Hex adds the field key with val as a hex string to the *Event context.
+// Hex adds the field key with val as a hex string to the ZeroEvent context.
 func (ze *zeroEvent) Hex(key string, val []byte) ZeroEvent {
-	return &zeroEvent{ev: ze.ev.Hex(key, val)}
+	ev := (*zerolog.Event)(ze).Hex(key, val)
+	return (*zeroEvent)(ev)
 }
 
-// Int64 adds the field key with i as a int64 to the *Event context.
+// Int adds the field key with i as a int to the ZeroEvent context.
+func (ze *zeroEvent) Int(key string, val int) ZeroEvent {
+	ev := (*zerolog.Event)(ze).Int(key, val)
+	return (*zeroEvent)(ev)
+}
+
+// Ints adds the field key with i as a int to the ZeroEvent context.
+func (ze *zeroEvent) Ints(key string, val []int) ZeroEvent {
+	ev := (*zerolog.Event)(ze).Ints(key, val)
+	return (*zeroEvent)(ev)
+}
+
+// Int64 adds the field key with i as a int64 to the ZeroEvent context.
 func (ze *zeroEvent) Int64(key string, val int64) ZeroEvent {
-	return &zeroEvent{ev: ze.ev.Int64(key, val)}
+	ev := (*zerolog.Event)(ze).Int64(key, val)
+	return (*zeroEvent)(ev)
 }
 
 // Interface adds the field key with i marshaled using reflection.
 func (ze *zeroEvent) Interface(key string, val interface{}) ZeroEvent {
-	return &zeroEvent{ev: ze.ev.Interface(key, val)}
+	ev := (*zerolog.Event)(ze).Interface(key, val)
+	return (*zeroEvent)(ev)
 }
 
-// Str adds the field key with val as a string to the *Event context.
+// Str adds the field key with val as a string to the ZeroEvent context.
 func (ze *zeroEvent) Str(key string, val string) ZeroEvent {
-	return &zeroEvent{ev: ze.ev.Str(key, val)}
+	ev := (*zerolog.Event)(ze).Str(key, val)
+	return (*zeroEvent)(ev)
 }
 
-// Strs adds the field key with vals as a []string to the *Event context.
+// Strs adds the field key with vals as a []string to the ZeroEvent context.
 func (ze *zeroEvent) Strs(key string, val []string) ZeroEvent {
-	return &zeroEvent{ev: ze.ev.Strs(key, val)}
+	ev := (*zerolog.Event)(ze).Strs(key, val)
+	return (*zeroEvent)(ev)
 }
 
-// Stringer adds the field key with val.String() (or null if val is nil) to the *Event context.
+// Stringer adds the field key with val.String() (or null if val is nil) to the ZeroEvent context.
 func (ze *zeroEvent) Stringer(key string, val fmt.Stringer) ZeroEvent {
-	return &zeroEvent{ev: ze.ev.Stringer(key, val)}
+	ev := (*zerolog.Event)(ze).Stringer(key, val)
+	return (*zeroEvent)(ev)
 }
 
 // Time adds the field key with t formated as string using zerolog.TimeFieldFormat.
 func (ze *zeroEvent) Time(key string, val time.Time) ZeroEvent {
-	return &zeroEvent{ev: ze.ev.Time(key, val)}
+	ev := (*zerolog.Event)(ze).Time(key, val)
+	return (*zeroEvent)(ev)
 }
 
-// Uint adds the field key with i as a uint to the *Event context.
+// Uint adds the field key with i as a uint to the ZeroEvent context.
 func (ze *zeroEvent) Uint(key string, val uint) ZeroEvent {
-	return &zeroEvent{ev: ze.ev.Uint(key, val)}
+	ev := (*zerolog.Event)(ze).Uint(key, val)
+	return (*zeroEvent)(ev)
 }
 
-// Uint64 adds the field key with i as a uint to the *Event context.
+// Uint adds the field key with i as a uint to the ZeroEvent context.
+func (ze *zeroEvent) Uints(key string, val []uint) ZeroEvent {
+	ev := (*zerolog.Event)(ze).Uints(key, val)
+	return (*zeroEvent)(ev)
+}
+
+// Uint64 adds the field key with i as a uint to the ZeroEvent context.
 func (ze *zeroEvent) Uint64(key string, val uint64) ZeroEvent {
-	return &zeroEvent{ev: ze.ev.Uint64(key, val)}
+	ev := (*zerolog.Event)(ze).Uint64(key, val)
+	return (*zeroEvent)(ev)
 }

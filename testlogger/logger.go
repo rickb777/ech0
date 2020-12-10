@@ -6,16 +6,19 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"sync"
 )
 
 // TestLogger captures log messages, organised by level: Infos, Warns and Errors.
 // It deliberately ignores Debug level messages.
 // Note that Fatal will call os.Exit so cannot usefully be tested.
 type TestLogger struct {
-	Infos  []*TestLogEvent
-	Warns  []*TestLogEvent
-	Errors []*TestLogEvent
-	Panics []*TestLogEvent
+	context []*TestLogEvent
+	Infos   []*TestLogEvent
+	Warns   []*TestLogEvent
+	Errors  []*TestLogEvent
+	Panics  []*TestLogEvent
+	mu      *sync.Mutex
 	// note that debug messages are deliberately ignored
 	// and fatal messages cannot be captured
 }
@@ -23,7 +26,7 @@ type TestLogger struct {
 var _ ech0.Zero = &TestLogger{}
 
 func New() *TestLogger {
-	return &TestLogger{}
+	return &TestLogger{mu: &sync.Mutex{}}
 }
 
 func (l *TestLogger) Debug() ech0.ZeroEvent {
@@ -31,25 +34,35 @@ func (l *TestLogger) Debug() ech0.ZeroEvent {
 }
 
 func (l *TestLogger) Info() ech0.ZeroEvent {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	first := &TestLogEvent{}
 	l.Infos = append(l.Infos, first)
 	return first
 }
 
 func (l *TestLogger) Warn() ech0.ZeroEvent {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	first := &TestLogEvent{}
 	l.Warns = append(l.Warns, first)
 	return first
 }
 
 func (l *TestLogger) Error() ech0.ZeroEvent {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	first := &TestLogEvent{}
 	l.Errors = append(l.Errors, first)
 	return first
 }
 
 func (l *TestLogger) Panic() ech0.ZeroEvent {
-	return &TestLogEvent{done: func(s string) { panic(s) }}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	first := &TestLogEvent{done: func(s string) { panic(s) }}
+	l.Panics = append(l.Panics, first)
+	return first
 }
 
 // Fatal starts a new message with fatal level. The os.Exit(1) function
@@ -81,8 +94,8 @@ func (l *TestLogger) WithLevel(level zerolog.Level) ech0.ZeroEvent {
 	// the normal termination behaviour; it's not supported here.
 	//case zerolog.FatalLevel:
 	//	return l.newEvent(zerolog.FatalLevel, nil)
-	//case zerolog.PanicLevel:
-	//	return l.newEvent(zerolog.PanicLevel, nil)
+	case zerolog.PanicLevel:
+		return l.Panic()
 	//case zerolog.NoLevel:
 	//	return l.Log()
 
@@ -110,6 +123,10 @@ func (l *TestLogger) Int(key string, val int) ech0.Zero {
 }
 
 func (l *TestLogger) RawJSON(key string, b []byte) ech0.Zero {
+	return l
+}
+
+func (l *TestLogger) Timestamp() ech0.Zero {
 	return l
 }
 
