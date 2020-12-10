@@ -9,58 +9,87 @@ import (
 	"sync"
 )
 
-// TestLogger captures log messages, organised by level: Infos, Warns and Errors.
+// TestLogger captures log messages, organised by level: Infos, Warns, Errors and Panics.
 // It deliberately ignores Debug level messages.
+//
 // Note that Fatal will call os.Exit so cannot usefully be tested.
 type TestLogger struct {
-	context []*TestLogEvent
-	Infos   []*TestLogEvent
-	Warns   []*TestLogEvent
-	Errors  []*TestLogEvent
-	Panics  []*TestLogEvent
-	mu      *sync.Mutex
+	realLogger ech0.Zero
+	Infos      []*TestLogEvent
+	Warns      []*TestLogEvent
+	Errors     []*TestLogEvent
+	Panics     []*TestLogEvent
+	mu         *sync.Mutex
 	// note that debug messages are deliberately ignored
 	// and fatal messages cannot be captured
 }
 
 var _ ech0.Zero = &TestLogger{}
 
-func New() *TestLogger {
-	return &TestLogger{mu: &sync.Mutex{}}
+func New(realLogger ech0.Zero) *TestLogger {
+	return &TestLogger{realLogger: realLogger, mu: &sync.Mutex{}}
 }
 
 func (l *TestLogger) Debug() ech0.ZeroEvent {
-	return &TestLogEvent{} // will be discarded after use
+	var ze ech0.ZeroEvent
+	if l.realLogger != nil {
+		ze = l.realLogger.Debug()
+	}
+	return &TestLogEvent{realEvent: ze} // will be discarded after use
 }
 
 func (l *TestLogger) Info() ech0.ZeroEvent {
+	var ze ech0.ZeroEvent
+	if l.realLogger != nil {
+		ze = l.realLogger.Info()
+	}
+
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	first := &TestLogEvent{}
+
+	first := &TestLogEvent{realEvent: ze}
 	l.Infos = append(l.Infos, first)
 	return first
 }
 
 func (l *TestLogger) Warn() ech0.ZeroEvent {
+	var ze ech0.ZeroEvent
+	if l.realLogger != nil {
+		ze = l.realLogger.Warn()
+	}
+
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	first := &TestLogEvent{}
+
+	first := &TestLogEvent{realEvent: ze}
 	l.Warns = append(l.Warns, first)
 	return first
 }
 
 func (l *TestLogger) Error() ech0.ZeroEvent {
+	var ze ech0.ZeroEvent
+	if l.realLogger != nil {
+		ze = l.realLogger.Error()
+	}
+
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	first := &TestLogEvent{}
+
+	first := &TestLogEvent{realEvent: ze}
 	l.Errors = append(l.Errors, first)
 	return first
 }
 
 func (l *TestLogger) Panic() ech0.ZeroEvent {
+	var ze ech0.ZeroEvent
+	if l.realLogger != nil {
+		ze = l.realLogger.Panic()
+	}
+
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	first := &TestLogEvent{done: func(s string) { panic(s) }}
+
+	first := &TestLogEvent{realEvent: ze, done: func(s string) { panic(s) }}
 	l.Panics = append(l.Panics, first)
 	return first
 }
@@ -69,7 +98,11 @@ func (l *TestLogger) Panic() ech0.ZeroEvent {
 // is called by the Msg method, which terminates the program immediately.
 // Therefore, this should be avoided during testing.
 func (l *TestLogger) Fatal() ech0.ZeroEvent {
-	return &TestLogEvent{done: func(string) { os.Exit(1) }}
+	var ze ech0.ZeroEvent
+	if l.realLogger != nil {
+		ze = l.realLogger.Fatal()
+	}
+	return &TestLogEvent{realEvent: ze, done: func(string) { os.Exit(1) }}
 }
 
 func (l *TestLogger) Err(err error) ech0.ZeroEvent {
@@ -107,26 +140,56 @@ func (l *TestLogger) WithLevel(level zerolog.Level) ech0.ZeroEvent {
 }
 
 func (l *TestLogger) Output(w io.Writer) ech0.Zero {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.realLogger != nil {
+		l.realLogger = l.realLogger.Output(w)
+	}
 	return l
 }
 
 func (l *TestLogger) Level(lvl zerolog.Level) ech0.Zero {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.realLogger != nil {
+		l.realLogger = l.realLogger.Level(lvl)
+	}
 	return l
 }
 
 func (l *TestLogger) Str(key, val string) ech0.Zero {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.realLogger != nil {
+		l.realLogger = l.realLogger.Str(key, val)
+	}
 	return l
 }
 
 func (l *TestLogger) Int(key string, val int) ech0.Zero {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.realLogger != nil {
+		l.realLogger = l.realLogger.Int(key, val)
+	}
 	return l
 }
 
-func (l *TestLogger) RawJSON(key string, b []byte) ech0.Zero {
+func (l *TestLogger) RawJSON(key string, val []byte) ech0.Zero {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.realLogger != nil {
+		l.realLogger = l.realLogger.RawJSON(key, val)
+	}
 	return l
 }
 
 func (l *TestLogger) Timestamp() ech0.Zero {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.realLogger != nil {
+		l.realLogger = l.realLogger.Timestamp()
+	}
 	return l
 }
 
@@ -157,4 +220,5 @@ func (l *TestLogger) Reset() {
 	l.Infos = nil
 	l.Warns = nil
 	l.Errors = nil
+	l.Panics = nil
 }
