@@ -178,7 +178,7 @@ func TestMisc(t *testing.T) {
 	l.SetOutput(zb)
 	l.SetLevel(gommon.INFO)
 	l.Info("hello")
-	l.SetPrefix("foo")
+	//l.SetPrefix("foo") -- not implemented
 	l.SetLevel(gommon.WARN)
 	l.Warn("hello", "again")
 
@@ -193,7 +193,7 @@ func TestMisc(t *testing.T) {
 	if lines[0] != `{"level":"info","time":"2000-05-25T13:14:15Z","message":"hello"}` {
 		t.Errorf(`Got %q`, lines[0])
 	}
-	if lines[1] != `{"level":"warn","prefix":"foo","time":"2000-05-25T13:14:15Z","message":"helloagain"}` {
+	if lines[1] != `{"level":"warn","time":"2000-05-25T13:14:15Z","message":"helloagain"}` {
 		t.Errorf(`Got %q`, lines[1])
 	}
 	if lines[2] != "" {

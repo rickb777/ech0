@@ -33,7 +33,7 @@ var (
 // Log wraps a zerolog.Logger to provide an `echo.Logger` implementation
 type Log struct {
 	prefix   string
-	zl       zerolog.Logger
+	zl       Zero
 	out      io.Writer
 	lvl      zerolog.Level
 	callsite bool
@@ -42,10 +42,10 @@ type Log struct {
 // New returns a new Log instance with the given output.
 // Pass in your own zerolog logger if required.
 // No prefix is set; use SetPrefix if required.
-func New(out io.Writer, z ...zerolog.Logger) *Log {
-	var zl zerolog.Logger
+func New(out io.Writer, z ...Zero) *Log {
+	var zl Zero
 	if len(z) == 0 {
-		zl = zerolog.New(out).With().Timestamp().Logger()
+		zl = Wrap(zerolog.New(out).With().Timestamp().Logger())
 	} else {
 		zl = z[0]
 	}
@@ -57,7 +57,7 @@ func New(out io.Writer, z ...zerolog.Logger) *Log {
 	}
 }
 
-func (l Log) logWithFields() zerolog.Logger {
+func (l Log) logWithFields() Zero {
 	if !l.callsite {
 		return l.zl
 	}
@@ -66,7 +66,7 @@ func (l Log) logWithFields() zerolog.Logger {
 	_, f, no, ok := runtime.Caller(2)
 	if ok {
 		f = filepath.Base(f)
-		ll = l.zl.With().Str("file", f).Int("line", no).Logger()
+		ll = l.zl.Str("file", f).Int("line", no)
 	}
 
 	return ll
@@ -89,7 +89,7 @@ func (l Log) Debugj(j log.JSON) {
 	ll := l.logWithFields()
 	for k, v := range j {
 		j, _ := json.Marshal(v)
-		ll = ll.With().RawJSON(k, j).Logger()
+		ll = ll.RawJSON(k, j)
 	}
 
 	ll.Debug().Msg("")
@@ -113,7 +113,7 @@ func (l Log) Infoj(j log.JSON) {
 	ll := l.logWithFields()
 	for k, v := range j {
 		j, _ := json.Marshal(v)
-		ll = ll.With().RawJSON(k, j).Logger()
+		ll = ll.RawJSON(k, j)
 	}
 
 	ll.Info().Msg("")
@@ -137,7 +137,7 @@ func (l Log) Warnj(j log.JSON) {
 	ll := l.logWithFields()
 	for k, v := range j {
 		j, _ := json.Marshal(v)
-		ll = ll.With().RawJSON(k, j).Logger()
+		ll = ll.RawJSON(k, j)
 	}
 
 	ll.Warn().Msg("")
@@ -161,7 +161,7 @@ func (l Log) Errorj(j log.JSON) {
 	ll := l.logWithFields()
 	for k, v := range j {
 		j, _ := json.Marshal(v)
-		ll = ll.With().RawJSON(k, j).Logger()
+		ll = ll.RawJSON(k, j)
 	}
 
 	ll.Error().Msg("")
@@ -185,7 +185,7 @@ func (l Log) Fatalj(j log.JSON) {
 	ll := l.logWithFields()
 	for k, v := range j {
 		j, _ := json.Marshal(v)
-		ll = ll.With().RawJSON(k, j).Logger()
+		ll = ll.RawJSON(k, j)
 	}
 
 	ll.Fatal().Msg("")
@@ -209,7 +209,7 @@ func (l Log) Panicj(j log.JSON) {
 	ll := l.logWithFields()
 	for k, v := range j {
 		j, _ := json.Marshal(v)
-		ll = ll.With().RawJSON(k, j).Logger()
+		ll = ll.RawJSON(k, j)
 	}
 
 	ll.Panic().Msg("")
@@ -233,7 +233,7 @@ func (l Log) Printj(j log.JSON) {
 	ll := l.logWithFields()
 	for k, v := range j {
 		j, _ := json.Marshal(v)
-		ll = ll.With().RawJSON(k, j).Logger()
+		ll = ll.RawJSON(k, j)
 	}
 	ll.WithLevel(zerolog.NoLevel).Str("level", "-").Msg("")
 }
@@ -267,16 +267,17 @@ func (l Log) Prefix() string {
 }
 
 // SetPrefix satisfies the echo.Logger interface.
+// Not implemented: this is a no-op.
 func (l *Log) SetPrefix(prefix string) {
-	// Have to create a brand-new logger, since zero-log doesn't dedup fields. "prefix" would appear twice in the log output.
-	var z zerolog.Logger
-	if prefix != "" {
-		z = zerolog.New(l.Output()).With().Str("prefix", prefix).Timestamp().Logger().Level(l.lvl)
-	} else {
-		z = zerolog.New(l.Output()).With().Timestamp().Logger().Level(l.lvl)
-	}
-	l.zl = z
-	l.prefix = prefix
+	//// Have to create a brand-new logger, since zero-log doesn't dedup fields. "prefix" would appear twice in the log output.
+	//var z zerolog.Logger
+	//if prefix != "" {
+	//	z = zerolog.New(l.Output()).With().Str("prefix", prefix).Timestamp().Logger().Level(l.lvl)
+	//} else {
+	//	z = zerolog.New(l.Output()).With().Timestamp().Logger().Level(l.lvl)
+	//}
+	//l.zl = Wrap(z)
+	//l.prefix = prefix
 }
 
 // SetHeader satisfies the echo.Logger interface. It does nothing.
