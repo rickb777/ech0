@@ -2,7 +2,7 @@ package testlogger
 
 import (
 	"fmt"
-	"github.com/rickb777/ech0"
+	"github.com/rickb777/ech0/v2"
 	"time"
 )
 

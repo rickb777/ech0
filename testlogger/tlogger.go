@@ -1,7 +1,7 @@
 package testlogger
 
 import (
-	"github.com/rickb777/ech0"
+	"github.com/rickb777/ech0/v2"
 	"github.com/rs/zerolog"
 	"io"
 	"os"
