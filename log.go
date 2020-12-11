@@ -42,7 +42,7 @@ type Log struct {
 // New returns a new Log instance with the given output.
 // Pass in your own zerolog logger if required.
 // No prefix is set; use SetPrefix if required.
-func New(out io.Writer, z ...Zero) *Log {
+func New(out io.Writer, prefix string, z ...Zero) *Log {
 	var zl Zero
 	if len(z) == 0 {
 		zl = Wrap(zerolog.New(out).With().Timestamp().Logger())
@@ -50,7 +50,7 @@ func New(out io.Writer, z ...Zero) *Log {
 		zl = z[0]
 	}
 	return &Log{
-		prefix: "",
+		prefix: prefix,
 		out:    out,
 		zl:     zl,
 		lvl:    zerolog.GlobalLevel(),

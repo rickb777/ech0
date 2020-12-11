@@ -1,10 +1,9 @@
 #!/bin/bash -e
-cd $(dirname $0)
+cd "$(dirname "$0")"
 
 unset GOPATH
 
 go mod download
-
-gofmt -l -w *.go
+gofmt -l -w -s *.go
 go vet ./...
 go test -race ./...

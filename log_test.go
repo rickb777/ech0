@@ -58,7 +58,7 @@ func TestLogLevels(t *testing.T) {
 	gom.SetLevel(gommon.DEBUG)
 
 	zb := &bytes.Buffer{}
-	z := New(zb)
+	z := New(zb, "")
 	z.SetLevel(gommon.DEBUG)
 	z.SetCallsite(true)
 
@@ -173,7 +173,7 @@ func TestMisc(t *testing.T) {
 		return time.Date(2000, 5, 25, 13, 14, 15, 0, time.UTC)
 	}
 
-	l := New(ioutil.Discard)
+	l := New(ioutil.Discard, "")
 	zb := &bytes.Buffer{}
 	l.SetOutput(zb)
 	l.SetLevel(gommon.INFO)
@@ -205,15 +205,15 @@ func TestMisc(t *testing.T) {
 }
 
 func BenchmarkZeroFormat(b *testing.B) {
-	benchFormat(New(ioutil.Discard), b)
+	benchFormat(New(ioutil.Discard, ""), b)
 }
 
 func BenchmarkZeroJSON(b *testing.B) {
-	benchJSON(New(ioutil.Discard), b)
+	benchJSON(New(ioutil.Discard, ""), b)
 }
 
 func BenchmarkZero(b *testing.B) {
-	bench(New(ioutil.Discard), b)
+	bench(New(ioutil.Discard, ""), b)
 }
 
 func BenchmarkGommonFormat(b *testing.B) {
