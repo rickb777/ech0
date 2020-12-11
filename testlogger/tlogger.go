@@ -30,6 +30,11 @@ func New(realLogger ech0.Zero) *TestLogger {
 	return &TestLogger{realLogger: realLogger, mu: &sync.Mutex{}}
 }
 
+// NewWithConsoleLogger creates a new test logger with a wrapped console logger.
+func NewWithConsoleLogger() *TestLogger {
+	return New(ech0.Wrap(zerolog.New(zerolog.NewConsoleWriter())))
+}
+
 func (l *TestLogger) Debug() ech0.ZeroEvent {
 	var ze ech0.ZeroEvent
 	if l.realLogger != nil {
