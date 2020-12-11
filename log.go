@@ -43,17 +43,25 @@ type Log struct {
 // Pass in your own zerolog logger if required.
 // No prefix is set; use SetPrefix if required.
 func New(out io.Writer, prefix string, z ...Zero) *Log {
+	level := zerolog.GlobalLevel()
 	var zl Zero
 	if len(z) == 0 {
-		zl = Wrap(zerolog.New(out).With().Timestamp().Logger())
+		if prefix != "" {
+			zl = Wrap(zerolog.New(out).With().Str("prefix", prefix).Timestamp().Logger())
+		} else {
+			zl = Wrap(zerolog.New(out).With().Timestamp().Logger())
+		}
 	} else {
 		zl = z[0]
+		if zf, ok := zl.(*zeroFacade); ok {
+			level = zf.Zero().GetLevel()
+		}
 	}
 	return &Log{
 		prefix: prefix,
 		out:    out,
 		zl:     zl,
-		lvl:    zerolog.GlobalLevel(),
+		lvl:    level,
 	}
 }
 
