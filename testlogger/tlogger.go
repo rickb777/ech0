@@ -35,6 +35,14 @@ func NewWithConsoleLogger() *TestLogger {
 	return New(ech0.Wrap(zerolog.New(zerolog.NewConsoleWriter())))
 }
 
+func (l *TestLogger) Log() ech0.ZeroEvent {
+	var ze ech0.ZeroEvent
+	if l.realLogger != nil {
+		ze = l.realLogger.Log()
+	}
+	return &TestLogEvent{realEvent: ze} // will be discarded after use
+}
+
 func (l *TestLogger) Debug() ech0.ZeroEvent {
 	var ze ech0.ZeroEvent
 	if l.realLogger != nil {
@@ -134,8 +142,8 @@ func (l *TestLogger) WithLevel(level zerolog.Level) ech0.ZeroEvent {
 	//	return l.newEvent(zerolog.FatalLevel, nil)
 	case zerolog.PanicLevel:
 		return l.Panic()
-	//case zerolog.NoLevel:
-	//	return l.Log()
+	case zerolog.NoLevel:
+		return l.Log()
 
 	case zerolog.Disabled:
 		return nil

@@ -8,6 +8,9 @@ import (
 // Zero mimics a zerolog.Logger.
 // It excludes Trace because it is a non-requirement here.
 type Zero interface {
+	// Log starts a new message with no level. Setting GlobalLevel to Disabled
+	// will still disable events produced by this method.
+	Log() ZeroEvent
 	// Debug starts a new message with debug level.
 	Debug() ZeroEvent
 	// Info starts a new message with info level.
@@ -57,6 +60,14 @@ type zeroFacade zerolog.Logger
 // Wrap wraps an existing logger.
 func Wrap(z zerolog.Logger) Zero {
 	return (*zeroFacade)(&z)
+}
+
+// Log starts a new message with no level. Setting GlobalLevel to Disabled
+// will still disable events produced by this method.
+//
+// You must call Msg on the returned event in order to send the event.
+func (z *zeroFacade) Log() ZeroEvent {
+	return (*zeroEvent)(z.Zero().Log())
 }
 
 // Debug starts a new message with debug level.
