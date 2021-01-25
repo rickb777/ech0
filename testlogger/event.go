@@ -203,3 +203,39 @@ func (ev *TestLogEvent) Value() interface{} {
 	}
 	return ev.Val
 }
+
+//-------------------------------------------------------------------------------------------------
+
+type TestLogEvents []*TestLogEvent
+
+// Drop returns the slice of events shortened by dropping the first n events. This
+// panics if n is out of range.
+func (evs TestLogEvents) Drop(n int) TestLogEvents {
+	return evs[n:]
+}
+
+// DropLast returns the slice of events shortened by dropping the last n events. This
+// panics if n is out of range.
+func (evs TestLogEvents) DropLast(n int) TestLogEvents {
+	return evs[:len(evs)-n]
+}
+
+// First returns the first event in the slice.
+// This returns nil if the list is empty.
+func (evs TestLogEvents) First() *TestLogEvent {
+	if len(evs) == 0 {
+		return nil
+	}
+	// return Next because the lists always start with the blank level setting event
+	return evs[0].Next
+}
+
+// Last returns the last event in the slice.
+// This returns nil if the list is empty.
+func (evs TestLogEvents) Last() *TestLogEvent {
+	if len(evs) == 0 {
+		return nil
+	}
+	// return Next because the lists always start with the blank level setting event
+	return evs[len(evs)-1].Next
+}

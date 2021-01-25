@@ -10,16 +10,23 @@ import (
 func Test1(t *testing.T) {
 	g := NewGomegaWithT(t)
 	zl := zerolog.New(zerolog.NewConsoleWriter())
-	zl.Info().Msg("foooo")
+	zl.Info().Msg("m1")
 	z := ech0.Wrap(zl)
-	z.Info().Msg("bar")
+	z.Info().Msg("m2")
 	tl := New(z)
 
-	tl.Int("a", 1).Level(zerolog.InfoLevel).Warn().Int("b", 2).Msg("baz")
+	tl.Warn().Int("b", 2).Msg("m3")
+	tl.Int("a", 100).Level(zerolog.InfoLevel).Warn().Int("c", 3).Msg("m4")
+	tl.Int("a", 101).Warn().Int("d", 4).Msg("m5")
 
-	g.Expect(tl.Warns).To(HaveLen(1))
-	g.Expect(tl.LastWarn().FindByKey("b").Value()).To(Equal(2))
-	g.Expect(tl.LastWarn().FindByKey("").Value()).To(Equal("baz"))
+	g.Expect(tl.Infos).To(HaveLen(0))
+	//g.Expect(tl.Infos.Drop(1).Last().FindByKey("c").Value()).To(Equal(3))
+	g.Expect(tl.Warns).To(HaveLen(3))
+	g.Expect(tl.Warns.First().FindByKey("b").Value()).To(Equal(2))
+	g.Expect(tl.Warns.Drop(1).First().FindByKey("c").Value()).To(Equal(3))
+	g.Expect(tl.Warns.DropLast(1).Last().FindByKey("").Value()).To(Equal("m4"))
+	g.Expect(tl.LastWarn().FindByKey("").Value()).To(Equal("m5"))
+	g.Expect(tl.LastWarn().FindByKey("a").Value()).To(BeNil())
 
 	tl.Reset()
 

@@ -15,10 +15,10 @@ import (
 // Note that Fatal will call os.Exit so cannot usefully be tested.
 type TestLogger struct {
 	realLogger ech0.Zero
-	Infos      []*TestLogEvent
-	Warns      []*TestLogEvent
-	Errors     []*TestLogEvent
-	Panics     []*TestLogEvent
+	Infos      TestLogEvents
+	Warns      TestLogEvents
+	Errors     TestLogEvents
+	Panics     TestLogEvents
 	mu         *sync.Mutex
 	// note that debug messages are deliberately ignored
 	// and fatal messages cannot be captured
@@ -209,24 +209,15 @@ func (l *TestLogger) Timestamp() ech0.Zero {
 //-------------------------------------------------------------------------------------------------
 
 func (l *TestLogger) LastInfo() *TestLogEvent {
-	if len(l.Infos) == 0 {
-		return nil
-	}
-	return l.Infos[len(l.Infos)-1].Next
+	return l.Infos.Last()
 }
 
 func (l *TestLogger) LastWarn() *TestLogEvent {
-	if len(l.Warns) == 0 {
-		return nil
-	}
-	return l.Warns[len(l.Warns)-1].Next
+	return l.Warns.Last()
 }
 
 func (l *TestLogger) LastError() *TestLogEvent {
-	if len(l.Errors) == 0 {
-		return nil
-	}
-	return l.Errors[len(l.Errors)-1].Next
+	return l.Errors.Last()
 }
 
 func (l *TestLogger) Reset() {
