@@ -3,6 +3,7 @@ package testlogger
 import (
 	"fmt"
 	"github.com/rickb777/ech0/v2"
+	"strings"
 	"time"
 )
 
@@ -16,6 +17,29 @@ type TestLogEvent struct {
 }
 
 var _ ech0.ZeroEvent = &TestLogEvent{}
+
+func (ev *TestLogEvent) String() string {
+	return ev.buildString(&strings.Builder{})
+}
+
+func (ev *TestLogEvent) buildString(buf *strings.Builder) string {
+	if ev == nil {
+		return ""
+	}
+
+	if ev.Key == "" {
+		fmt.Fprintf(buf, "%s(%v)", ev.Method, ev.Val)
+	} else {
+		fmt.Fprintf(buf, "%s(%s, %v)", ev.Method, ev.Key, ev.Val)
+	}
+
+	if ev.Next == nil {
+		return buf.String()
+	}
+
+	fmt.Fprintf(buf, ".")
+	return ev.Next.buildString(buf)
+}
 
 func (ev *TestLogEvent) Send() {
 	if ev.realEvent != nil {

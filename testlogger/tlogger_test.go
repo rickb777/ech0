@@ -28,6 +28,10 @@ func Test1(t *testing.T) {
 	g.Expect(tl.LastWarn().FindByKey("").Value()).To(Equal("m5"))
 	g.Expect(tl.LastWarn().FindByKey("a").Value()).To(BeNil())
 
+	g.Expect(tl.Warns.First().String()).To(Equal("Int(b, 2).Msg(m3)"))
+	g.Expect(tl.Warns.Drop(1).First().String()).To(Equal("Int(c, 3).Msg(m4)"))
+	g.Expect(tl.Warns.Drop(2).First().String()).To(Equal("Int(d, 4).Msg(m5)"))
+
 	tl.Reset()
 
 	g.Expect(tl.Warns).To(BeEmpty())
