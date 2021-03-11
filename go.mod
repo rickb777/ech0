@@ -1,4 +1,4 @@
-module github.com/rickb777/ech0/v2
+module github.com/rickb777/ech0/v3
 
 go 1.16
 
