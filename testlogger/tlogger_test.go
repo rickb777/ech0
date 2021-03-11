@@ -2,7 +2,7 @@ package testlogger
 
 import (
 	. "github.com/onsi/gomega"
-	"github.com/rickb777/ech0/v2"
+	"github.com/rickb777/ech0/v3"
 	"github.com/rs/zerolog"
 	"testing"
 )
