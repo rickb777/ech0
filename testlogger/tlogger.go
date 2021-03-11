@@ -15,10 +15,10 @@ import (
 // Note that Fatal will call os.Exit so cannot usefully be tested.
 type TestLogger struct {
 	realLogger ech0.Zero
-	Infos      TestLogEvents
-	Warns      TestLogEvents
-	Errors     TestLogEvents
-	Panics     TestLogEvents
+	Infos      *TestLogEventList
+	Warns      *TestLogEventList
+	Errors     *TestLogEventList
+	Panics     *TestLogEventList
 	mu         *sync.Mutex
 	// note that debug messages are deliberately ignored
 	// and fatal messages cannot be captured
@@ -27,7 +27,14 @@ type TestLogger struct {
 var _ ech0.Zero = &TestLogger{}
 
 func New(realLogger ech0.Zero) *TestLogger {
-	return &TestLogger{realLogger: realLogger, mu: &sync.Mutex{}}
+	return &TestLogger{
+		realLogger: realLogger,
+		Infos:      NewTestLogEventList(),
+		Warns:      NewTestLogEventList(),
+		Errors:     NewTestLogEventList(),
+		Panics:     NewTestLogEventList(),
+		mu:         &sync.Mutex{},
+	}
 }
 
 // NewWithConsoleLogger creates a new test logger with a wrapped console logger.
@@ -57,11 +64,8 @@ func (l *TestLogger) Info() ech0.ZeroEvent {
 		ze = l.realLogger.Info()
 	}
 
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
 	first := &TestLogEvent{realEvent: ze}
-	l.Infos = append(l.Infos, first)
+	l.Infos.Add(first)
 	return first
 }
 
@@ -71,11 +75,8 @@ func (l *TestLogger) Warn() ech0.ZeroEvent {
 		ze = l.realLogger.Warn()
 	}
 
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
 	first := &TestLogEvent{realEvent: ze}
-	l.Warns = append(l.Warns, first)
+	l.Warns.Add(first)
 	return first
 }
 
@@ -85,11 +86,8 @@ func (l *TestLogger) Error() ech0.ZeroEvent {
 		ze = l.realLogger.Error()
 	}
 
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
 	first := &TestLogEvent{realEvent: ze}
-	l.Errors = append(l.Errors, first)
+	l.Errors.Add(first)
 	return first
 }
 
@@ -99,11 +97,8 @@ func (l *TestLogger) Panic() ech0.ZeroEvent {
 		ze = l.realLogger.Panic()
 	}
 
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
 	first := &TestLogEvent{realEvent: ze, done: func(s string) { panic(s) }}
-	l.Panics = append(l.Panics, first)
+	l.Panics.Add(first)
 	return first
 }
 
@@ -221,8 +216,8 @@ func (l *TestLogger) LastError() *TestLogEvent {
 }
 
 func (l *TestLogger) Reset() {
-	l.Infos = nil
-	l.Warns = nil
-	l.Errors = nil
-	l.Panics = nil
+	l.Infos.Clear()
+	l.Warns.Clear()
+	l.Errors.Clear()
+	l.Panics.Clear()
 }
