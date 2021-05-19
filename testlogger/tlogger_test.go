@@ -2,7 +2,7 @@ package testlogger
 
 import (
 	. "github.com/onsi/gomega"
-	"github.com/rickb777/ech0/v2"
+	"github.com/rickb777/ech0/v3"
 	"github.com/rs/zerolog"
 	"testing"
 )
@@ -19,9 +19,9 @@ func Test1(t *testing.T) {
 	tl.Int("a", 100).Level(zerolog.InfoLevel).Warn().Int("c", 3).Msg("m4")
 	tl.Int("a", 101).Warn().Int("d", 4).Msg("m5")
 
-	g.Expect(tl.Infos).To(HaveLen(0))
+	g.Expect(tl.Infos.Len()).To(Equal(0))
 	//g.Expect(tl.Infos.Drop(1).Last().FindByKey("c").Value()).To(Equal(3))
-	g.Expect(tl.Warns).To(HaveLen(3))
+	g.Expect(tl.Warns.Len()).To(Equal(3))
 	g.Expect(tl.Warns.First().FindByKey("b").Value()).To(Equal(2))
 	g.Expect(tl.Warns.Drop(1).First().FindByKey("c").Value()).To(Equal(3))
 	g.Expect(tl.Warns.DropLast(1).Last().FindByKey("").Value()).To(Equal("m4"))
@@ -34,6 +34,6 @@ func Test1(t *testing.T) {
 
 	tl.Reset()
 
-	g.Expect(tl.Warns).To(BeEmpty())
+	g.Expect(tl.Warns.IsEmpty()).To(BeTrue())
 	g.Expect(tl.LastWarn()).To(BeNil())
 }
