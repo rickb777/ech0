@@ -151,6 +151,11 @@ func (z *zeroFacade) Int(key string, val int) Zero {
 	return Wrap(z.Zero().With().Int(key, val).Logger())
 }
 
+// Bool creates a child logger with the field key and with val as a bool to the logger context.
+func (z *zeroFacade) Bool(key string, val bool) Zero {
+	return Wrap(z.Zero().With().Bool(key, val).Logger())
+}
+
 // RawJSON creates a child logger with the field key with val as already encoded JSON to context.
 //
 // No sanity check is performed on b; it must not contain carriage returns and be valid JSON.

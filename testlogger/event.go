@@ -87,6 +87,14 @@ func (ev *TestLogEvent) Bool(key string, val bool) ech0.ZeroEvent {
 	return ev.add(re, "Bool", key, val)
 }
 
+func (ev *TestLogEvent) Bools(key string, val []bool) ech0.ZeroEvent {
+	var re ech0.ZeroEvent
+	if ev.realEvent != nil {
+		re = ev.realEvent.Bools(key, val)
+	}
+	return ev.add(re, "Bools", key, val)
+}
+
 func (ev *TestLogEvent) Bytes(key string, val []byte) ech0.ZeroEvent {
 	var re ech0.ZeroEvent
 	if ev.realEvent != nil {
@@ -101,6 +109,14 @@ func (ev *TestLogEvent) Dur(key string, val time.Duration) ech0.ZeroEvent {
 		re = ev.realEvent.Dur(key, val)
 	}
 	return ev.add(re, "Dur", key, val)
+}
+
+func (ev *TestLogEvent) Dict(key string, dict ech0.ZeroEvent) ech0.ZeroEvent {
+	var re ech0.ZeroEvent
+	if ev.realEvent != nil {
+		re = ev.realEvent.Dict(key, dict)
+	}
+	return ev.add(re, "Dict", key, dict)
 }
 
 func (ev *TestLogEvent) Err(err error) ech0.ZeroEvent {
@@ -181,6 +197,14 @@ func (ev *TestLogEvent) Time(key string, val time.Time) ech0.ZeroEvent {
 		re = ev.realEvent.Time(key, val)
 	}
 	return ev.add(re, "Time", key, val)
+}
+
+func (ev *TestLogEvent) Timestamp() ech0.ZeroEvent {
+	var re ech0.ZeroEvent
+	if ev.realEvent != nil {
+		re = ev.realEvent.Timestamp()
+	}
+	return ev.add(re, "Timestamp", "", nil)
 }
 
 func (ev *TestLogEvent) Uint(key string, val uint) ech0.ZeroEvent {
